@@ -22,7 +22,7 @@ A simple Python script that gives you a custom Discord Rich Presence for literal
 
 ## How to use
 
-Then run the program and open your app, if you set it up right things should work!
+Then run the script and open your app, if you set it up right things should work!
 
 > I like to make mine an executable but you can just run `python discord_rpc.py` too
 
