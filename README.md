@@ -15,7 +15,7 @@ A simple Python script that gives you a custom Discord Rich Presence for literal
 
 1. **Install Dependencies:** Install python, pypresence and psutil :p
 2. **Get an ID:** If there isn't an application for your program then make an application but if there is just lookup the application id: [Discord Developer Portal](https://discord.com/developers/applications)
-3. **Configure:** Copy the application id into the `.py` script (btw the whole thing is annotated)
+3. **Configure:** Copy the application id into the `.py` script (btw the whole script is annotated)
 4. **(Optional):** Upload icons to that application on the discord website
 
 ---
