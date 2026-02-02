@@ -6,7 +6,7 @@ A simple Python script that gives you a custom Discord Rich Presence for literal
 * **Lightweight** - virtually 0 cpu
 * **Smart** - only shows up when the game is open
 * **Universal** - it works for any program
-* **Persistent** - it will work even if discord crashes or closes
+* **Persistent** - it will work even if Discord crashes or closes
 * **Easy to use**
 
 ---
@@ -28,5 +28,5 @@ Then run the script and open your app, if you set it up right things should work
 
 ---
 
-## YES I will read the issues
-If you have a problem please do feel free to submit it to the repo
+## YES I do read the issues and request
+If you have a problem or any feedback please do feel free to submit it to the repo
