@@ -26,60 +26,72 @@ RPC_DETAILS = {
 # REFRESH RATE how often (in seconds) to check if the app is running
 POLL_INTERVAL = 15
 
-def is_process_running():
+def get_game_start():
     """Scans running processes for any name in PROCESS_NAMES."""
-    for proc in psutil.process_iter(['name']):
+    # returns when the game started, or None if it isn't running
+    wanted = [n.lower() for n in PROCESS_NAMES]  # so Firefox.exe still matches firefox.exe
+    for proc in psutil.process_iter(['name', 'create_time']):
         try:
-            if proc.info['name'] in PROCESS_NAMES:
-                return True
+            name = (proc.info['name'] or "").lower()
+            if name in wanted:
+                return int(proc.info['create_time'])
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
-    return False
+    return None
 
 def main():
     print(f"Waiting for {PROCESS_NAMES}...")
 
-    rpc = Presence(CLIENT_ID)
-    connected = False
-    start_time = None
+    rpc = None  # only connect to discord once the game is actually open
 
-    while True:
-        try:
-            if not connected:
-                try:
-                    rpc.connect()
-                    connected = True
-                    print("connected to discord!")
-                except Exception:
-                    time.sleep(5)
-                    continue
+    try:
+        while True:
+            start_time = get_game_start()
 
-            if is_process_running():
-                if start_time is None:
-                    start_time = int(time.time())
-                    print(f"Detected {PROCESS_NAMES}! updating status...")
+            try:
+                if start_time is not None:
+                    if rpc is None:
+                        rpc = Presence(CLIENT_ID)
+                        rpc.connect()
+                        print(f"Detected {PROCESS_NAMES}! updating status...")
 
+                    # sending this every loop so the status comes back if discord restarts
                     rpc.update(
                         details=RPC_DETAILS["details"],
                         state=RPC_DETAILS["state"],
                         large_image=RPC_DETAILS["large_image"],
                         large_text=RPC_DETAILS["large_text"],
-                        small_image=RPC_DETAILS["small_image"],
-                        small_text=RPC_DETAILS["small_text"],
+                        small_image=RPC_DETAILS["small_image"] or None,
+                        small_text=RPC_DETAILS["small_text"] or None,
                         start=start_time
                     )
-            else:
-                if start_time is not None:
-                    print("Process closed. Clearing status.")
-                    rpc.clear()
-                    start_time = None
+                else:
+                    if rpc is not None:
+                        print("Process closed. Clearing status.")
+                        rpc.clear()
+                        rpc.close()
+                        rpc = None
 
-        except Exception as e:
-            print(f"Error: {e}. Reconnecting...")
-            connected = False
-            start_time = None
+            except Exception as e:
+                # usually just means discord isn't open, so toss the connection and retry next loop
+                print(f"Error: {e}. Reconnecting...")
+                try:
+                    rpc.close()
+                except Exception:
+                    pass
+                rpc = None
 
-        time.sleep(POLL_INTERVAL)
+            time.sleep(POLL_INTERVAL)
+
+    except KeyboardInterrupt:
+        # ctrl+c, clean up so the status doesn't get stuck on your profile
+        print("\nStopping...")
+        if rpc is not None:
+            try:
+                rpc.clear()
+                rpc.close()
+            except Exception:
+                pass
 
 if __name__ == "__main__":
     main()
